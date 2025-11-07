@@ -1,0 +1,38 @@
+[gd_scene load_steps=2 format=3 uid="uid://d8r3yxqnqx7k"]
+
+[ext_resource type="Script" path="res://God.gd" id="1_1"]
+
+[node name="God" type="PanelContainer"]
+custom_minimum_size = Vector2(150, 0)
+script = ExtResource("1_1")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="IconLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "👤"
+horizontal_alignment = 1
+
+[node name="NameLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "God Name"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="StatsLabel" type="RichTextLabel" parent="MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+bbcode_enabled = true
+text = "STR: 50 SPD: 50 INT: 50"
+fit_content = true

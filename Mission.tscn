@@ -1,0 +1,40 @@
+[gd_scene load_steps=2 format=3 uid="uid://d4gh8oygjo3ag"]
+
+[ext_resource type="Script" path="res://Mission.gd" id="1_1"]
+
+[node name="Mission" type="PanelContainer"]
+custom_minimum_size = Vector2(280, 0)
+script = ExtResource("1_1")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="NameLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Mission Name"
+autowrap_mode = 3
+
+[node name="DifficultyLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Difficulty: ★★★"
+
+[node name="StatLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Needs: Strength"
+
+[node name="RewardLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Reward: 100 Faith"
+
+[node name="TimeLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Time: 10.0s"
