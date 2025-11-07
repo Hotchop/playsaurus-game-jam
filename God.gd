@@ -12,11 +12,15 @@ var is_selected: bool = false
 @onready var name_label = $NameLabel
 @onready var stats_label = $StatsLabel
 
-func setup(p_name: String, p_strength: int, p_speed: int, p_intelligence: int):
+func setup(p_name: String, p_strength: int, p_speed: int, p_intelligence: int, p_image):
+	var god_image = $God
+	
 	god_name = p_name
 	strength = p_strength
 	speed = p_speed
 	intelligence = p_intelligence
+	if p_image:
+		god_image.texture = p_image
 
 func _ready():
 	if name_label:

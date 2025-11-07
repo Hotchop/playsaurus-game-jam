@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://d8r3yxqnqx7k"]
+[gd_scene load_steps=5 format=3 uid="uid://d8r3yxqnqx7k"]
 
 [ext_resource type="Script" uid="uid://dpumof1m88k5a" path="res://God.gd" id="1_1"]
 [ext_resource type="Texture2D" uid="uid://ctrgv1bu55l5k" path="res://assets/card.png" id="2_card"]
+[ext_resource type="Texture2D" uid="uid://c11mx70chmmlr" path="res://assets/gods/brontesGodOfMildThunder.png" id="3_xymvq"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_5fc8n"]
 line_spacing = 0.15
@@ -41,3 +42,14 @@ bbcode_enabled = true
 text = "50 50 50"
 fit_content = true
 scroll_active = false
+
+[node name="God" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = 9.213587
+offset_top = 32.363453
+offset_right = 1033.2136
+offset_bottom = 1056.3634
+scale = Vector2(0.09681905, 0.09681905)
+texture = ExtResource("3_xymvq")
+expand_mode = 2
+stretch_mode = 3

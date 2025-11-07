@@ -4,6 +4,14 @@ extends Control
 const UPGRADE_SLATE_BLOCKED_TEXTURE = preload("res://assets/slateLocked.png")
 const UPGRADE_SLATE_TEXTURE = preload("res://assets/upgradesSlates.png")
 
+#God Images
+const GOD1 = preload("res://assets/gods/brontesGodOfMildThunder.png")
+const GOD2 = preload("res://assets/gods/caffeonGodOfDivineOverstimulation.png")
+const GOD3 = preload("res://assets/gods/god1.png")
+const GOD4 = preload("res://assets/gods/goddess1.png")
+const GOD5 = preload("res://assets/gods/hesitosGodOfProcrastination.png")
+const GOD6 = preload("res://assets/gods/narciliosPatronOfReflectiveSurfaces.png")
+
 # Game state
 var faith: int = 1000  # Main currency for everything
 var reputation: float = 2.5
@@ -29,6 +37,15 @@ var level_names: Array = [
 	"Vice President",
 	"Executive",
 	"CEO"
+]
+
+var god_images: Array = [
+	GOD1,
+	GOD2,
+	GOD3,
+	GOD4,
+	GOD5,
+	GOD6
 ]
 
 # Collections
@@ -255,8 +272,9 @@ func add_random_god():
 	var strength = randi() % 101
 	var speed = randi() % 101
 	var intelligence = randi() % 101
+	var godImage = god_images[randi() % god_images.size()]
 
-	god.setup(god_name, strength, speed, intelligence)
+	god.setup(god_name, strength, speed, intelligence, godImage)
 	god.god_clicked.connect(_on_god_clicked)
 
 	all_gods.append(god)
