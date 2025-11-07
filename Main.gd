@@ -83,6 +83,11 @@ var mission_names: Array = [
 @onready var upgrades_container = $MarginContainer/VBoxContainer/MainContent/UpgradesPanel/VBoxContainer/ScrollContainer/VBoxContainer
 @onready var auto_play_button = $MarginContainer/VBoxContainer/ButtonsBar/AutoPlayButton
 @onready var help_button = $MarginContainer/VBoxContainer/ButtonsBar/HelpButton
+@onready var sort_str_button = $MarginContainer/VBoxContainer/GodsPanel/VBoxContainer/SortButtons/SortByStrength
+@onready var sort_spd_button = $MarginContainer/VBoxContainer/GodsPanel/VBoxContainer/SortButtons/SortBySpeed
+@onready var sort_int_button = $MarginContainer/VBoxContainer/GodsPanel/VBoxContainer/SortButtons/SortByIntelligence
+@onready var message_label = $MarginContainer/VBoxContainer/MessageLabel
+@onready var gods_title_label = $MarginContainer/VBoxContainer/GodsPanel/VBoxContainer/Label
 
 # Timers
 var mission_spawn_timer: float = 0.0
@@ -94,6 +99,12 @@ var selected_god = null
 
 # Auto play
 var auto_play_enabled: bool = false
+
+# Message queue
+var message_queue: Array = []
+var current_message_timer: float = 0.0
+var message_display_time: float = 5.0
+var is_showing_message: bool = false
 
 func _ready():
 	randomize()
@@ -107,6 +118,9 @@ func _ready():
 	# Connect buttons
 	auto_play_button.toggled.connect(_on_auto_play_toggled)
 	help_button.pressed.connect(_on_help_pressed)
+	sort_str_button.pressed.connect(func(): sort_gods_by("strength"))
+	sort_spd_button.pressed.connect(func(): sort_gods_by("speed"))
+	sort_int_button.pressed.connect(func(): sort_gods_by("intelligence"))
 
 func _process(delta):
 	# Spawn missions randomly
@@ -121,6 +135,9 @@ func _process(delta):
 
 	for mission in active_missions:
 		mission.update_progress(delta)
+
+	# Handle message queue
+	process_message_queue(delta)
 
 	update_ui()
 
@@ -251,11 +268,17 @@ func _on_mission_completed(mission, god, success):
 		print("  After - Faith: ", faith, " (gained: ", faith - old_faith, ")")
 		print("  After - Reputation: ", reputation, " (gained: ", reputation - old_reputation, ")")
 		print("  FAITH GAINED: +", actual_reward, " (Total: ", faith, ")")
+
+		# Add success message to queue
+		add_message("Miracle Granted - %s - +%d Faith" % [mission.mission_name, actual_reward], Color(1.0, 0.84, 0.0))  # Gold color
 	else:
 		var old_reputation = reputation
 		reputation = max(0.0, reputation - 0.05)
 		print("  MISSION FAILED - No faith gained")
 		print("  After - Reputation: ", reputation, " (lost: ", old_reputation - reputation, ")")
+
+		# Add failure message to queue
+		add_message("Miracle Busted - %s" % mission.mission_name, Color(1.0, 0.2, 0.2))  # Red color
 
 	# Free the god
 	god.set_busy(false)
@@ -269,6 +292,8 @@ func update_ui():
 		faith_label.text = "Faith: %d" % faith
 	if reputation_label:
 		reputation_label.text = "Reputation: %.1f/5.0" % reputation
+	if gods_title_label:
+		gods_title_label.text = "Available Gods (%d/%d)" % [all_gods.size(), god_slots]
 
 func setup_upgrades():
 	add_upgrade("Buy Random God", 500, func(): return buy_random_god())
@@ -337,3 +362,50 @@ CURRENCY:
 	popup.min_size = Vector2(400, 300)
 	add_child(popup)
 	popup.popup_centered()
+
+func sort_gods_by(stat: String):
+	# Sort all_gods array
+	all_gods.sort_custom(func(a, b):
+		var a_val = 0
+		var b_val = 0
+		match stat:
+			"strength":
+				a_val = a.strength
+				b_val = b.strength
+			"speed":
+				a_val = a.speed
+				b_val = b.speed
+			"intelligence":
+				a_val = a.intelligence
+				b_val = b.intelligence
+		return a_val > b_val  # Descending order
+	)
+
+	# Reorder children in the container
+	for god in all_gods:
+		gods_container.move_child(god, all_gods.find(god))
+
+func add_message(text: String, color: Color):
+	message_queue.append({"text": text, "color": color})
+
+func process_message_queue(delta: float):
+	if is_showing_message:
+		current_message_timer += delta
+
+		# Fade effect in the last second
+		if current_message_timer >= message_display_time - 1.0:
+			var fade_progress = (current_message_timer - (message_display_time - 1.0)) / 1.0
+			message_label.modulate.a = 1.0 - fade_progress
+
+		if current_message_timer >= message_display_time:
+			is_showing_message = false
+			message_label.text = ""
+			message_label.modulate.a = 1.0
+			current_message_timer = 0.0
+	elif message_queue.size() > 0:
+		# Show next message
+		var next_message = message_queue.pop_front()
+		message_label.text = next_message["text"]
+		message_label.add_theme_color_override("font_color", next_message["color"])
+		is_showing_message = true
+		current_message_timer = 0.0

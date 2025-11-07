@@ -31,16 +31,22 @@ func update_display():
 	icon_label.text = "👤"  # Generic person icon
 	name_label.text = god_name
 
-	# Color-coded stats
+	# Color-coded stats with lighter colors and bold
 	stats_label.clear()
-	stats_label.push_color(Color.RED)
+	stats_label.push_bold()
+	stats_label.push_color(Color(1.0, 0.4, 0.4))  # Light red
 	stats_label.add_text("STR: %d  " % strength)
 	stats_label.pop()
-	stats_label.push_color(Color.BLUE)
+	stats_label.pop()
+	stats_label.push_bold()
+	stats_label.push_color(Color(0.4, 0.6, 1.0))  # Light blue
 	stats_label.add_text("SPD: %d  " % speed)
 	stats_label.pop()
-	stats_label.push_color(Color.GREEN)
+	stats_label.pop()
+	stats_label.push_bold()
+	stats_label.push_color(Color(0.4, 1.0, 0.4))  # Light green
 	stats_label.add_text("INT: %d" % intelligence)
+	stats_label.pop()
 	stats_label.pop()
 
 	if is_busy:

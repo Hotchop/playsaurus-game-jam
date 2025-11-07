@@ -39,17 +39,51 @@ func _ready():
 	gui_input.connect(_on_gui_input)
 
 func update_display():
-	name_label.text = mission_name
-	difficulty_label.text = "Difficulty: %s" % get_difficulty_stars()
+	# Color the recommended stat based on which stat it is
+	var stat_color = Color.WHITE
+	match recommended_stat:
+		"strength":
+			stat_color = Color(1.0, 0.4, 0.4)  # Light red
+		"speed":
+			stat_color = Color(0.4, 0.6, 1.0)  # Light blue
+		"intelligence":
+			stat_color = Color(0.4, 1.0, 0.4)  # Light green
+
+	stat_label.add_theme_color_override("font_color", stat_color)
 	stat_label.text = "Needs: %s" % recommended_stat.capitalize()
 	reward_label.text = "Reward: %d Faith" % reward
 
+	# Update name label with bold text and color based on assignment status
+	name_label.clear()
 	if is_active:
+		# Grey out assigned missions
+		name_label.push_color(Color(0.6, 0.6, 0.6))  # Grey
+		difficulty_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+		stat_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+		reward_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+		time_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+
 		time_label.text = "Time left: %.1fs" % (completion_time - progress_timer)
 		if assigned_god:
-			name_label.text = "%s (ASSIGNED TO %s)" % [mission_name, assigned_god.god_name]
+			name_label.push_bold()
+			name_label.add_text("%s (ASSIGNED TO %s)" % [mission_name, assigned_god.god_name])
+			name_label.pop()
+		name_label.pop()
 	else:
+		# White text for new missions
+		name_label.push_color(Color.WHITE)
+		difficulty_label.remove_theme_color_override("font_color")
+		stat_label.add_theme_color_override("font_color", stat_color)  # Restore stat color
+		reward_label.remove_theme_color_override("font_color")
+		time_label.remove_theme_color_override("font_color")
+
 		time_label.text = "Time: %.1fs | Expires: %.1fs" % [completion_time, expiry_timer]
+		name_label.push_bold()
+		name_label.add_text(mission_name)
+		name_label.pop()
+		name_label.pop()
+
+	difficulty_label.text = "Difficulty: %s" % get_difficulty_stars()
 
 	# Visual feedback for selection
 	if is_selected:

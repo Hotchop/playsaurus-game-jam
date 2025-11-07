@@ -17,11 +17,13 @@ theme_override_constants/margin_bottom = 10
 layout_mode = 2
 theme_override_constants/separation = 5
 
-[node name="NameLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+[node name="NameLabel" type="RichTextLabel" parent="MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
+bbcode_enabled = true
 text = "Mission Name"
-autowrap_mode = 3
+fit_content = true
 
 [node name="DifficultyLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2

@@ -148,6 +148,13 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 5
 
+[node name="MessageLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = ""
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="ButtonsBar" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 20
@@ -178,6 +185,23 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "Available Gods"
 horizontal_alignment = 1
+
+[node name="SortButtons" type="HBoxContainer" parent="MarginContainer/VBoxContainer/GodsPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="SortByStrength" type="Button" parent="MarginContainer/VBoxContainer/GodsPanel/VBoxContainer/SortButtons"]
+layout_mode = 2
+text = "Sort by STR"
+
+[node name="SortBySpeed" type="Button" parent="MarginContainer/VBoxContainer/GodsPanel/VBoxContainer/SortButtons"]
+layout_mode = 2
+text = "Sort by SPD"
+
+[node name="SortByIntelligence" type="Button" parent="MarginContainer/VBoxContainer/GodsPanel/VBoxContainer/SortButtons"]
+layout_mode = 2
+text = "Sort by INT"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer/GodsPanel/VBoxContainer"]
 layout_mode = 2
