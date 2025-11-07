@@ -7,8 +7,9 @@
 [sub_resource type="LabelSettings" id="LabelSettings_5fc8n"]
 line_spacing = 0.15
 font_size = 10
-outline_color = Color(0, 0, 0, 1)
-shadow_color = Color(0, 0, 0, 0.5647059)
+font_color = Color(0.33118775, 0.18940455, 0.11781151, 1)
+outline_color = Color(0.8732984, 0.8732984, 0.8732984, 1)
+shadow_color = Color(0.98363155, 0.73429877, 0.51282936, 1)
 
 [node name="God" type="TextureRect"]
 custom_minimum_size = Vector2(225, 150)
@@ -35,9 +36,9 @@ autowrap_mode = 3
 [node name="StatsLabel" type="RichTextLabel" parent="."]
 layout_mode = 0
 offset_left = 119.77663
-offset_top = 74.6849
+offset_top = 74.68489
 offset_right = 186.57513
-offset_bottom = 97.6849
+offset_bottom = 97.68489
 bbcode_enabled = true
 text = "50 50 50"
 fit_content = true
@@ -45,11 +46,10 @@ scroll_active = false
 
 [node name="God" type="TextureRect" parent="."]
 layout_mode = 0
-offset_left = 9.213587
-offset_top = 32.363453
-offset_right = 1033.2136
-offset_bottom = 1056.3634
+offset_left = 6.9101906
+offset_top = 49.78993
+offset_right = 1030.9102
+offset_bottom = 1073.7899
 scale = Vector2(0.09681905, 0.09681905)
 texture = ExtResource("3_xymvq")
 expand_mode = 2
-stretch_mode = 3
