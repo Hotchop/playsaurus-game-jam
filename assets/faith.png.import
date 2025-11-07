@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bhm5thqeaxuf7"
-path="res://.godot/imported/conceptArt.png-f882d619f808da919a473009ae271dd9.ctex"
+uid="uid://ycoyx1wbiuwi"
+path="res://.godot/imported/faith.png-8f9f416a9a1112c7a1e32f912cf2f0dc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://conceptArt.png"
-dest_files=["res://.godot/imported/conceptArt.png-f882d619f808da919a473009ae271dd9.ctex"]
+source_file="res://assets/faith.png"
+dest_files=["res://.godot/imported/faith.png-8f9f416a9a1112c7a1e32f912cf2f0dc.ctex"]
 
 [params]
 

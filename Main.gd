@@ -3,9 +3,25 @@ extends Control
 # Game state
 var faith: int = 1000  # Main currency for everything
 var reputation: float = 2.5
-var god_slots: int = 5
+var god_slots: int = 3
+var max_god_slots: int = 10
 var mission_success_bonus: float = 0.0  # Increases min multiplier
 var faith_multiplier: float = 1.0
+
+# Level system
+var current_level: int = 1
+var level_names: Array = [
+	"Intern",
+	"Junior",
+	"Associate",
+	"Specialist",
+	"Manager",
+	"Senior Manager",
+	"Director",
+	"Vice President",
+	"Executive",
+	"CEO"
+]
 
 # Collections
 var all_gods: Array = []
@@ -78,6 +94,7 @@ var mission_names: Array = [
 # UI References
 @onready var faith_label = $MarginContainer/VBoxContainer/TopBar/FaithLabel
 @onready var reputation_label = $MarginContainer/VBoxContainer/TopBar/ReputationLabel
+@onready var level_label = $MarginContainer/VBoxContainer/TopBar/LevelLabel
 @onready var missions_container = $MarginContainer/VBoxContainer/MainContent/MissionsPanel/VBoxContainer/ScrollContainer/VBoxContainer
 @onready var gods_container = $MarginContainer/VBoxContainer/GodsPanel/VBoxContainer/ScrollContainer/HBoxContainer
 @onready var upgrades_container = $MarginContainer/VBoxContainer/MainContent/UpgradesPanel/VBoxContainer/ScrollContainer/VBoxContainer
@@ -86,6 +103,7 @@ var mission_names: Array = [
 @onready var sort_str_button = $MarginContainer/VBoxContainer/GodsPanel/VBoxContainer/SortButtons/SortByStrength
 @onready var sort_spd_button = $MarginContainer/VBoxContainer/GodsPanel/VBoxContainer/SortButtons/SortBySpeed
 @onready var sort_int_button = $MarginContainer/VBoxContainer/GodsPanel/VBoxContainer/SortButtons/SortByIntelligence
+@onready var fire_god_button = $MarginContainer/VBoxContainer/GodsPanel/VBoxContainer/SortButtons/FireGodButton
 @onready var message_label = $MarginContainer/VBoxContainer/MessageLabel
 @onready var gods_title_label = $MarginContainer/VBoxContainer/GodsPanel/VBoxContainer/Label
 
@@ -123,6 +141,7 @@ func _ready():
 	sort_str_button.pressed.connect(func(): sort_gods_by("strength"))
 	sort_spd_button.pressed.connect(func(): sort_gods_by("speed"))
 	sort_int_button.pressed.connect(func(): sort_gods_by("intelligence"))
+	fire_god_button.pressed.connect(_on_fire_god_pressed)
 
 func _process(delta):
 	# Spawn missions randomly
@@ -148,6 +167,11 @@ func _process(delta):
 	# Handle message queue
 	process_message_queue(delta)
 
+	# Update level up button text
+	update_level_up_button()
+	update_fire_god_button()
+	update_upgrade_buttons()
+
 	update_ui()
 
 func spawn_mission():
@@ -165,14 +189,29 @@ func create_random_mission():
 	var mission_name = mission_names[randi() % mission_names.size()]
 	var difficulty = randi() % 5 + 1  # 1-5
 	var recommended_stat = ["strength", "speed", "intelligence"][randi() % 3]
-	var reward = difficulty * 100 * randf_range(0.8, 1.5)
+
+	# Scale rewards based on level (level 1: 1x, level 10: 5x)
+	var reward_multiplier = 1.0 + (current_level - 1) * 0.45  # Goes from 1.0 to 5.05
+	var reward = difficulty * 100 * randf_range(0.8, 1.5) * reward_multiplier
+
 	var completion_time = difficulty * 5.0 + randf_range(2.0, 8.0)
-	var threshold = difficulty * 25.0 + randf_range(5.0, 20.0)  # 1-star: 30-45, 5-star: 130-145
+
+	# Scale thresholds based on level
+	# Level 1: min 20, max 75
+	# Level 10: min 75, max 200
+	var level_progress = (current_level - 1) / 9.0  # 0.0 to 1.0
+	var min_threshold = lerp(20.0, 75.0, level_progress)
+	var max_threshold = lerp(75.0, 200.0, level_progress)
+
+	var threshold_range = max_threshold - min_threshold
+	var threshold = min_threshold + (difficulty - 1) / 4.0 * threshold_range + randf_range(0.0, threshold_range * 0.2)
 
 	mission.setup(mission_name, difficulty, recommended_stat, int(reward), completion_time, threshold)
 	mission.mission_clicked.connect(_on_mission_clicked)
 	mission.mission_expired.connect(_on_mission_expired)
 	mission.mission_completed.connect(_on_mission_completed)
+
+	print("Created mission: %s | Difficulty: %d | Threshold: %.1f | Reward: %d" % [mission_name, difficulty, threshold, int(reward)])
 
 	return mission
 
@@ -218,6 +257,9 @@ func _on_god_clicked(god):
 
 	selected_god = god
 
+	# Update fire button
+	update_fire_god_button()
+
 	# If we have both mission and god selected, assign it
 	if selected_god and selected_mission:
 		assign_mission()
@@ -246,6 +288,7 @@ func assign_mission():
 	selected_mission = null
 	selected_god.deselect()
 	selected_god = null
+	update_fire_god_button()
 
 func _on_mission_expired(mission):
 	# Mission disappeared without being completed
@@ -254,6 +297,7 @@ func _on_mission_expired(mission):
 
 	# Decrease reputation
 	reputation = max(0.0, reputation - 0.1)
+	check_demotion()
 
 func _on_mission_completed(mission, god, success):
 	print("=== _on_mission_completed CALLED ===")
@@ -289,6 +333,9 @@ func _on_mission_completed(mission, god, success):
 		# Add failure message to queue
 		add_message("Miracle Busted - %s" % mission.mission_name, Color(1.0, 0.2, 0.2))  # Red color
 
+		# Check for demotion
+		check_demotion()
+
 	# Free the god
 	god.set_busy(false)
 
@@ -301,17 +348,21 @@ func update_ui():
 		faith_label.text = "Faith: %d" % faith
 	if reputation_label:
 		reputation_label.text = "Reputation: %.1f/5.0" % reputation
+	if level_label:
+		level_label.text = "Level: %d (%s)" % [current_level, level_names[current_level - 1]]
 	if gods_title_label:
 		gods_title_label.text = "Available Gods (%d/%d)" % [all_gods.size(), god_slots]
 
 func setup_upgrades():
-	add_upgrade("Buy Random God", 500, func(): return buy_random_god())
-	add_upgrade("Buy God Slot", 1000, func(): return buy_god_slot())
-	add_upgrade("Mission Success Bonus", 750, func(): return buy_success_bonus())
-	add_upgrade("Faith Multiplier", 1000, func(): return buy_faith_multiplier())
+	add_upgrade("BuyGodButton", "Buy Random God", 500, func(): return buy_random_god())
+	add_dynamic_upgrade("BuySlotButton", "Buy God Slot", func(): return buy_god_slot())
+	add_upgrade("SuccessBonusButton", "Mission Success Bonus", 750, func(): return buy_success_bonus())
+	add_upgrade("FaithMultiplierButton", "Faith Multiplier", 1000, func(): return buy_faith_multiplier())
+	add_level_up_button()
 
-func add_upgrade(upgrade_name: String, cost: int, callback: Callable):
+func add_upgrade(button_name: String, upgrade_name: String, cost: int, callback: Callable):
 	var upgrade = Button.new()
+	upgrade.name = button_name
 	upgrade.text = "%s (%d Faith)" % [upgrade_name, cost]
 	upgrade.pressed.connect(func():
 		if faith >= cost:
@@ -320,10 +371,63 @@ func add_upgrade(upgrade_name: String, cost: int, callback: Callable):
 	)
 	upgrades_container.add_child(upgrade)
 
+func add_dynamic_upgrade(button_name: String, upgrade_name: String, callback: Callable):
+	var upgrade = Button.new()
+	upgrade.name = button_name
+	upgrade.text = upgrade_name
+	upgrade.pressed.connect(func():
+		var cost = get_god_slot_cost()
+		if faith >= cost:
+			if callback.call():
+				faith -= cost
+	)
+	upgrades_container.add_child(upgrade)
+
+func update_upgrade_buttons():
+	var buy_god_button = upgrades_container.get_node_or_null("BuyGodButton")
+	if buy_god_button:
+		var can_buy = all_gods.size() < god_slots
+		if can_buy:
+			buy_god_button.text = "Buy Random God (500 Faith)\nHire new god. Slots: %d/%d" % [all_gods.size(), god_slots]
+			buy_god_button.disabled = false
+		else:
+			buy_god_button.text = "Buy Random God (500 Faith)\nNo slots available! (%d/%d)" % [all_gods.size(), god_slots]
+			buy_god_button.disabled = true
+
+	var buy_slot_button = upgrades_container.get_node_or_null("BuySlotButton")
+	if buy_slot_button:
+		if god_slots >= max_god_slots:
+			buy_slot_button.text = "Buy God Slot\nMAX SLOTS (%d/%d)" % [god_slots, max_god_slots]
+			buy_slot_button.disabled = true
+		else:
+			var cost = get_god_slot_cost()
+			buy_slot_button.text = "Buy God Slot (%d Faith)\nExpand roster. Current: %d/%d" % [cost, god_slots, max_god_slots]
+			buy_slot_button.disabled = false
+
+	var success_bonus_button = upgrades_container.get_node_or_null("SuccessBonusButton")
+	if success_bonus_button:
+		if mission_success_bonus >= 0.5:
+			success_bonus_button.text = "Mission Success Bonus (750 Faith)\nMAX LEVEL (0.50)"
+			success_bonus_button.disabled = true
+		else:
+			success_bonus_button.text = "Mission Success Bonus (750 Faith)\n+0.01 min multiplier. Current: %.2f" % mission_success_bonus
+
+	var faith_mult_button = upgrades_container.get_node_or_null("FaithMultiplierButton")
+	if faith_mult_button:
+		faith_mult_button.text = "Faith Multiplier (1000 Faith)\n+10%% rewards. Current: %.1fx" % faith_multiplier
+
 func buy_random_god() -> bool:
 	return add_random_god()
 
+func get_god_slot_cost() -> int:
+	# Exponential cost: 1000 * (2 ^ (current_slots - 3))
+	# Slots 3->4: 1000, 4->5: 2000, 5->6: 4000, 6->7: 8000, etc.
+	var slots_purchased = god_slots - 3
+	return int(1000 * pow(2, slots_purchased))
+
 func buy_god_slot() -> bool:
+	if god_slots >= max_god_slots:
+		return false
 	god_slots += 1
 	return true
 
@@ -336,6 +440,64 @@ func buy_success_bonus() -> bool:
 func buy_faith_multiplier() -> bool:
 	faith_multiplier += 0.1
 	return true
+
+func get_level_up_cost() -> int:
+	# Cost increases per level: 1000, 2000, 3000, etc.
+	return current_level * 1000
+
+func can_level_up() -> bool:
+	return current_level < 10 and reputation >= 5.0
+
+func add_level_up_button():
+	var level_up_button = Button.new()
+	level_up_button.name = "LevelUpButton"
+
+	# Update button in _process since it needs to check reputation
+	upgrades_container.add_child(level_up_button)
+
+	level_up_button.pressed.connect(func():
+		if can_level_up() and faith >= get_level_up_cost():
+			var cost = get_level_up_cost()
+			faith -= cost
+			level_up()
+	)
+
+func level_up():
+	if current_level >= 10:
+		return
+
+	current_level += 1
+	reputation = 2.5  # Reset reputation
+
+	# Calculate new threshold ranges (for logging)
+	var level_progress = (current_level - 1) / 9.0
+	var min_threshold = lerp(20.0, 75.0, level_progress)
+	var max_threshold = lerp(75.0, 200.0, level_progress)
+
+	# Show level up message
+	var popup = AcceptDialog.new()
+	popup.title = "Level Up!"
+	popup.dialog_text = "Congratulations! You are now a %s!\n\nMissions will now provide better rewards but be more challenging." % level_names[current_level - 1]
+	popup.min_size = Vector2(400, 200)
+	add_child(popup)
+	popup.popup_centered()
+
+	print("LEVEL UP! Now level %d: %s | Threshold range: %.1f - %.1f" % [current_level, level_names[current_level - 1], min_threshold, max_threshold])
+
+func check_demotion():
+	if current_level > 1 and reputation <= 0.0:
+		current_level -= 1
+		reputation = 2.5  # Reset reputation
+
+		# Show demotion message
+		var popup = AcceptDialog.new()
+		popup.title = "Demoted!"
+		popup.dialog_text = "Your reputation has fallen too low!\n\nYou have been demoted to %s." % level_names[current_level - 1]
+		popup.min_size = Vector2(400, 200)
+		add_child(popup)
+		popup.popup_centered()
+
+		print("DEMOTED! Now level %d: %s" % [current_level, level_names[current_level - 1]])
 
 func _on_auto_play_toggled(button_pressed: bool):
 	auto_play_enabled = button_pressed
@@ -464,3 +626,49 @@ func process_message_queue(delta: float):
 		message_label.add_theme_color_override("font_color", next_message["color"])
 		is_showing_message = true
 		current_message_timer = 0.0
+
+func update_level_up_button():
+	var button = upgrades_container.get_node_or_null("LevelUpButton")
+	if button:
+		if current_level >= 10:
+			button.text = "MAX LEVEL"
+			button.disabled = true
+		elif can_level_up():
+			button.text = "LEVEL UP to %s (%d Faith)" % [level_names[current_level], get_level_up_cost()]
+			button.disabled = false
+		else:
+			button.text = "Level Up (Need 5.0 Reputation)"
+			button.disabled = true
+
+func update_fire_god_button():
+	if fire_god_button:
+		if selected_god and not selected_god.is_busy:
+			fire_god_button.disabled = false
+		else:
+			fire_god_button.disabled = true
+
+func _on_fire_god_pressed():
+	if not selected_god or selected_god.is_busy:
+		return
+
+	var fire_cost = 1000
+	if faith < fire_cost:
+		return
+
+	# Confirm dialog
+	var popup = ConfirmationDialog.new()
+	popup.title = "Fire God?"
+	popup.dialog_text = "Are you sure you want to fire %s?\n\nThis will cost %d Faith as compensation." % [selected_god.god_name, fire_cost]
+	popup.min_size = Vector2(400, 150)
+
+	popup.confirmed.connect(func():
+		faith -= fire_cost
+		all_gods.erase(selected_god)
+		selected_god.queue_free()
+		selected_god = null
+		update_fire_god_button()
+		print("Fired god - Cost: %d Faith" % fire_cost)
+	)
+
+	add_child(popup)
+	popup.popup_centered()

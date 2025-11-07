@@ -64,6 +64,11 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Reputation: 2.5/5.0"
 
+[node name="LevelLabel" type="Label" parent="MarginContainer/VBoxContainer/TopBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Level: 1 (Intern)"
+
 [node name="MainContent" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
@@ -202,6 +207,14 @@ text = "Sort by SPD"
 [node name="SortByIntelligence" type="Button" parent="MarginContainer/VBoxContainer/GodsPanel/VBoxContainer/SortButtons"]
 layout_mode = 2
 text = "Sort by INT"
+
+[node name="Spacer" type="Control" parent="MarginContainer/VBoxContainer/GodsPanel/VBoxContainer/SortButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="FireGodButton" type="Button" parent="MarginContainer/VBoxContainer/GodsPanel/VBoxContainer/SortButtons"]
+layout_mode = 2
+text = "Fire Selected God (1000 Faith)"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer/GodsPanel/VBoxContainer"]
 layout_mode = 2
